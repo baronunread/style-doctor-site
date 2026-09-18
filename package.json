@@ -1,18 +1,30 @@
 {
   "name": "style-doctor-site",
-  "type": "module",
   "version": "0.0.1",
-  "engines": {
-    "node": ">=22.12.0"
-  },
+  "type": "module",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "lint": "oxlint .",
+    "format": "oxfmt .",
+    "check:react": "react-doctor",
+    "check:prose": "style-doctor",
+    "check": "npm run lint && npm run check:react && npm run check:prose"
   },
   "dependencies": {
     "astro": "^7.3.3"
+  },
+  "devDependencies": {
+    "@oxlint/plugins": "^1.83.0",
+    "oxfmt": "^0.68.0",
+    "oxlint": "^1.83.0",
+    "react-doctor": "^0.9.14",
+    "style-doctor": "^0.4.0"
+  },
+  "engines": {
+    "node": ">=22.12.0"
   },
   "allowScripts": {
     "esbuild": true
