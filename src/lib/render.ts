@@ -18,11 +18,22 @@ export function scoreTone(score: number) {
   return "critical";
 }
 
-// Highlighted markup for the backdrop layer: same text as the textarea, with
-// <mark> around each diagnostic's matched span. Diagnostics are grouped by
-// line, sorted by column; an overlapping match is dropped rather than nested,
-// keeping this a plain string-splice instead of a real span tree.
-export function buildHighlightHtml(raw: string, diagnostics: Diagnostic[]) {
+export interface HighlightRange {
+  from: number;
+  to: number;
+  severity: "error" | "warning";
+  title: string;
+}
+
+// Diagnostic line/column positions turned into absolute character offsets
+// into `raw`, for a CodeMirror decoration set (or anything else that wants
+// plain [from, to) ranges). Diagnostics are grouped by line, sorted by
+// column; an overlapping match is dropped rather than producing a nested
+// range. Returned sorted by `from`, as CodeMirror's Decoration.set requires.
+export function highlightRanges(raw: string, diagnostics: Diagnostic[]): HighlightRange[] {
+  const lineStarts = [0];
+  for (let i = 0; i < raw.length; i++) if (raw[i] === "\n") lineStarts.push(i + 1);
+
   const byLine = new Map<number, Diagnostic[]>();
   for (const d of diagnostics) {
     const list = byLine.get(d.line) ?? [];
@@ -31,24 +42,20 @@ export function buildHighlightHtml(raw: string, diagnostics: Diagnostic[]) {
   }
   for (const list of byLine.values()) list.sort((a, b) => a.column - b.column);
 
-  const lines = raw.split("\n");
-  const out = lines.map((line, i) => {
-    const ds = byLine.get(i + 1);
-    if (!ds) return escapeHtml(line);
-    let html = "";
-    let cursor = 0;
+  const ranges: HighlightRange[] = [];
+  for (const [line, ds] of byLine) {
+    const base = lineStarts[line - 1];
+    if (base === undefined) continue;
+    let cursor = base;
     for (const d of ds) {
-      const start = d.column - 1;
-      const end = start + d.match.length;
-      if (start < cursor) continue; // overlapping match, skip
-      html += escapeHtml(line.slice(cursor, start));
-      html += `<mark class="sev-${d.severity}" title="${escapeHtml(d.title)}">${escapeHtml(line.slice(start, end))}</mark>`;
-      cursor = end;
+      const from = base + (d.column - 1);
+      const to = from + d.match.length;
+      if (from < cursor) continue; // overlapping match, skip
+      ranges.push({ from, to, severity: d.severity, title: d.title });
+      cursor = to;
     }
-    html += escapeHtml(line.slice(cursor));
-    return html;
-  });
-  return out.join("\n") + "\n"; // trailing newline: textarea always renders one more line
+  }
+  return ranges.sort((a, b) => a.from - b.from);
 }
 
 export function diagnosticsListHtml(diagnostics: Diagnostic[]) {

@@ -62,16 +62,15 @@ body {
   font-family: var(--font-sans);
 }
 
-mark.sev-error {
+/* CodeMirror decoration marks (plain <span>, not <mark>) for diagnostic hits */
+.cm-content .sev-error {
   background: var(--error-bg);
-  color: inherit;
   border-radius: 2px;
   box-shadow: 0 0 0 1px var(--error-bg);
 }
 
-mark.sev-warning {
+.cm-content .sev-warning {
   background: var(--warning-bg);
-  color: inherit;
   border-radius: 2px;
   box-shadow: 0 0 0 1px var(--warning-bg);
 }

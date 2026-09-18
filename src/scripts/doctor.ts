@@ -1,12 +1,14 @@
 import { findInText, scoreLabel } from "style-doctor/rules.js";
 import {
-  escapeHtml,
   scoreOf,
   scoreTone,
-  buildHighlightHtml,
+  highlightRanges,
   diagnosticsListHtml,
   categoryCountsHtml,
 } from "../lib/render";
+import { EditorState, StateEffect, StateField } from "@codemirror/state";
+import { Decoration, EditorView, keymap, type DecorationSet } from "@codemirror/view";
+import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 
 function must<T extends Element>(selector: string): T {
   const el = document.querySelector<T>(selector);
@@ -14,8 +16,7 @@ function must<T extends Element>(selector: string): T {
   return el;
 }
 
-const input = must<HTMLTextAreaElement>("#input");
-const highlightLayer = must<HTMLDivElement>("#highlight-layer");
+const mount = must<HTMLDivElement>("#editor-mount");
 const scoreValue = must<HTMLDivElement>("#score-value");
 const scoreLabelEl = must<HTMLDivElement>("#score-label");
 const wordCountEl = must<HTMLDivElement>("#word-count");
@@ -26,25 +27,35 @@ function formatElapsed(ms: number) {
   return ms < 1 ? `${(ms * 1000).toFixed(0)}μs` : `${ms.toFixed(1)}ms`;
 }
 
-function syncScroll() {
-  highlightLayer.scrollTop = input.scrollTop;
-  highlightLayer.scrollLeft = input.scrollLeft;
+// A CodeMirror StateField holding the current set of highlight decorations,
+// replaced wholesale via setHighlights whenever a scan finishes. This is the
+// single source of truth for what's highlighted — no separate DOM layer to
+// keep in sync, so there's nothing that can visually desync on scroll.
+const setHighlights = StateEffect.define<DecorationSet>();
+const highlightField = StateField.define<DecorationSet>({
+  create() {
+    return Decoration.none;
+  },
+  update(deco, tr) {
+    deco = deco.map(tr.changes);
+    for (const e of tr.effects) if (e.is(setHighlights)) deco = e.value;
+    return deco;
+  },
+  provide: (f) => EditorView.decorations.from(f),
+});
+
+function decorationsFor(text: string, diagnostics: ReturnType<typeof findInText>["diagnostics"]) {
+  const marks = highlightRanges(text, diagnostics).map((r) =>
+    Decoration.mark({ class: `sev-${r.severity}`, attributes: { title: r.title } }).range(
+      r.from,
+      r.to,
+    ),
+  );
+  return Decoration.set(marks, true);
 }
 
-// Keeps the backdrop's text (and thus its line-wrapping) identical to the
-// textarea on every keystroke/paste, synchronously, with no marks yet. A
-// large paste scrolls the textarea to the cursor immediately; if the
-// backdrop kept showing pre-paste content until the debounced scan below
-// finished, the two would show different, differently-wrapped text at the
-// same position for that whole window, i.e. the doubled-text glitch.
-function syncPlainText() {
-  highlightLayer.textContent = "";
-  highlightLayer.innerHTML = input.value.split("\n").map(escapeHtml).join("\n") + "\n";
-  syncScroll();
-}
-
-function run() {
-  const text = input.value;
+function scan(view: EditorView) {
+  const text = view.state.doc.toString();
 
   if (text.trim().length === 0) {
     scoreValue.textContent = "–";
@@ -53,7 +64,7 @@ function run() {
     wordCountEl.textContent = "";
     categoryCounts.innerHTML = "";
     diagnosticsList.innerHTML = `<p class="empty-state">Paste or type some text to see it scored.</p>`;
-    highlightLayer.innerHTML = "";
+    view.dispatch({ effects: setHighlights.of(Decoration.none) });
     return;
   }
 
@@ -69,21 +80,39 @@ function run() {
 
   categoryCounts.innerHTML = categoryCountsHtml(diagnostics);
   diagnosticsList.innerHTML = diagnosticsListHtml(diagnostics);
-  // Only replace the backdrop here if the textarea hasn't changed again
-  // since this scan started (a stray keystroke during a big scan shouldn't
-  // clobber the plain-text sync that already happened for the newer value).
-  if (input.value === text) {
-    highlightLayer.innerHTML = buildHighlightHtml(text, diagnostics);
-    syncScroll();
-  }
+  view.dispatch({ effects: setHighlights.of(decorationsFor(text, diagnostics)) });
 }
 
 let scheduled = 0;
-function schedule() {
-  syncPlainText();
+function schedule(view: EditorView) {
   window.clearTimeout(scheduled);
-  scheduled = window.setTimeout(run, 400);
+  scheduled = window.setTimeout(() => scan(view), 400);
 }
 
-input.addEventListener("input", schedule);
-input.addEventListener("scroll", syncScroll);
+const initialText = mount.textContent ?? "";
+mount.textContent = "";
+
+const view = new EditorView({
+  state: EditorState.create({
+    doc: initialText,
+    extensions: [
+      history(),
+      keymap.of([...defaultKeymap, ...historyKeymap]),
+      highlightField,
+      EditorView.lineWrapping,
+      EditorView.updateListener.of((update) => {
+        if (update.docChanged) schedule(update.view);
+      }),
+      EditorView.theme({
+        "&": { height: "100%", fontSize: "13px" },
+        ".cm-scroller": { fontFamily: "var(--font-mono)", lineHeight: "1.65", overflow: "auto" },
+        ".cm-content": { padding: "1rem", caretColor: "var(--accent)" },
+        "&.cm-focused": { outline: "none" },
+        ".cm-line": { padding: 0 },
+      }),
+    ],
+  }),
+  parent: mount,
+});
+
+scan(view); // seed highlights/sidebar immediately; debounce only applies to edits after this

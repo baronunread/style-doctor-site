@@ -4,7 +4,7 @@ import geistSansUrl from "@fontsource/geist-sans/files/geist-sans-latin-400-norm
 import geistSansBoldUrl from "@fontsource/geist-sans/files/geist-sans-latin-600-normal.woff2?url";
 import geistMonoUrl from "@fontsource/geist-mono/files/geist-mono-latin-400-normal.woff2?url";
 import { findInText, scoreLabel } from "style-doctor/rules.js";
-import { scoreOf, scoreTone, buildHighlightHtml, diagnosticsListHtml, categoryCountsHtml } from "../lib/render";
+import { scoreOf, scoreTone, diagnosticsListHtml, categoryCountsHtml } from "../lib/render";
 
 const EXAMPLE = `In today's world, it's important to note that we must delve into the rich tapestry of modern software. This isn't just a tool, but a game-changer that will unlock the potential of your writing. It stands as a testament to seamless, robust, cutting-edge engineering.
 
@@ -64,18 +64,10 @@ const score = scoreOf(diagnostics, words);
 
       <div class="mt-4 grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
         <div
-          class="relative min-h-[320px] overflow-hidden rounded-lg border"
+          class="flex min-h-[320px] flex-col overflow-hidden rounded-lg border"
           style="border-color: var(--border); background: var(--surface);"
         >
-          <div id="highlight-layer" class="doctor-pane" aria-hidden="true" set:html={buildHighlightHtml(EXAMPLE, diagnostics)}></div>
-          <textarea
-            id="input"
-            class="doctor-pane"
-            style="background: transparent; color: var(--text); caret-color: var(--accent);"
-            spellcheck="false"
-            autocomplete="off"
-            set:text={EXAMPLE}
-          ></textarea>
+          <div id="editor-mount" class="min-h-0 flex-1" set:text={EXAMPLE} />
         </div>
 
         <aside class="flex min-h-[320px] flex-col overflow-hidden rounded-lg border" style="border-color: var(--border); background: var(--surface);">
@@ -112,39 +104,15 @@ const score = scoreOf(diagnostics, words);
 </html>
 
 <style is:global>
-  .doctor-pane {
-    position: absolute;
-    inset: 0;
-    margin: 0;
-    padding: 1rem;
-    border: 0;
-    width: 100%;
-    height: 100%;
+  #editor-mount {
+    color: var(--text);
     font-family: var(--font-mono);
     font-size: 13px;
-    line-height: 1.65;
     white-space: pre-wrap;
     word-break: break-word;
-    overflow: auto;
-    overscroll-behavior: none;
-    resize: none;
   }
-
-  #highlight-layer {
-    pointer-events: none;
-    color: var(--text);
-    /* Never its own scroll container: overflow:auto here would let it
-       rubber-band independently of the textarea on trackpad overscroll,
-       since native momentum scrolling animates through many intermediate
-       positions our per-"scroll"-event JS sync can't track exactly,
-       briefly showing this layer at a different offset than the textarea
-       (a second copy of the text peeking through). scrollTop still works
-       programmatically on an overflow:hidden element. */
-    overflow: hidden;
-  }
-
-  #input {
-    outline: none;
+  #editor-mount .cm-editor {
+    height: 100%;
   }
 
   .category-chip {
