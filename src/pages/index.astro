@@ -132,6 +132,14 @@ const score = scoreOf(diagnostics, words);
   #highlight-layer {
     pointer-events: none;
     color: var(--text);
+    /* Never its own scroll container: overflow:auto here would let it
+       rubber-band independently of the textarea on trackpad overscroll,
+       since native momentum scrolling animates through many intermediate
+       positions our per-"scroll"-event JS sync can't track exactly,
+       briefly showing this layer at a different offset than the textarea
+       (a second copy of the text peeking through). scrollTop still works
+       programmatically on an overflow:hidden element. */
+    overflow: hidden;
   }
 
   #input {
