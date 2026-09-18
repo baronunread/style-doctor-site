@@ -5,6 +5,13 @@ import geistSansBoldUrl from "@fontsource/geist-sans/files/geist-sans-latin-600-
 import geistMonoUrl from "@fontsource/geist-mono/files/geist-mono-latin-400-normal.woff2?url";
 import { findInText, scoreLabel } from "style-doctor/rules.js";
 import { scoreOf, scoreTone, diagnosticsListHtml, categoryCountsHtml } from "../lib/render";
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+
+const styleDoctorPkgPath = createRequire(import.meta.url)
+  .resolve("style-doctor")
+  .replace(/cli\.js$/, "package.json");
+const { version } = JSON.parse(readFileSync(styleDoctorPkgPath, "utf8"));
 
 const EXAMPLE = `In today's world, it's important to note that we must delve into the rich tapestry of modern software. This isn't just a tool, but a game-changer that will unlock the potential of your writing. It stands as a testament to seamless, robust, cutting-edge engineering.
 
@@ -43,8 +50,9 @@ const score = scoreOf(diagnostics, words);
       class="flex h-14 shrink-0 items-center justify-between border-b px-6"
       style="border-color: var(--border); background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px);"
     >
-      <a href="/" class="font-mono text-[15px] font-medium tracking-tight" style="color: var(--text);">
+      <a href="/" class="flex items-baseline gap-2 font-mono text-[15px] font-medium tracking-tight" style="color: var(--text);">
         style<span style="color: var(--accent);">·</span>doctor
+        <span class="text-xs font-normal" style="color: var(--text-dim);">v{version}</span>
       </a>
       <nav class="flex items-center gap-5 text-sm" style="color: var(--text-dim);">
         <a href="https://www.npmjs.com/package/style-doctor" class="hover:opacity-70">npm</a>
