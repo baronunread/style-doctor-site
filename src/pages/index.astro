@@ -105,11 +105,17 @@ const score = scoreOf(diagnostics, words);
 
 <style is:global>
   #editor-mount {
+    padding: 1rem;
     color: var(--text);
     font-family: var(--font-mono);
     font-size: 13px;
+    line-height: 1.65;
     white-space: pre-wrap;
     word-break: break-word;
+    /* Padding lives here, not on .cm-content, so the pre-hydration fallback
+       text (rendered directly in this div, no CodeMirror yet) sits at the
+       exact same position CodeMirror renders it at once it mounts. Padding
+       in both places would double up once the editor takes over. */
   }
   #editor-mount .cm-editor {
     height: 100%;

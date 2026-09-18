@@ -106,7 +106,7 @@ const view = new EditorView({
       EditorView.theme({
         "&": { height: "100%", fontSize: "13px" },
         ".cm-scroller": { fontFamily: "var(--font-mono)", lineHeight: "1.65", overflow: "auto" },
-        ".cm-content": { padding: "1rem", caretColor: "var(--accent)" },
+        ".cm-content": { padding: 0, caretColor: "var(--accent)" },
         "&.cm-focused": { outline: "none" },
         ".cm-line": { padding: 0 },
       }),
