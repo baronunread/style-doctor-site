@@ -1,17 +1,232 @@
 ---
+import "../styles/global.css";
 
+const EXAMPLE = `In today's world, it's important to note that we must delve into the rich tapestry of modern software. This isn't just a tool, but a game-changer that will unlock the potential of your writing. It stands as a testament to seamless, robust, cutting-edge engineering.
+
+## Why This Matters And Why It Is Important
+
+- **Speed:** blazing fast across every workflow
+- **Clarity:** a meticulous, intricate interplay of ideas
+
+I hope this helps! Let me know if you have questions.`;
 ---
 
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="generator" content={Astro.generator} />
+    <title>Style Doctor</title>
+    <meta
+      name="description"
+      content="Paste your prose and see every AI-writing tell highlighted live, in your browser."
+    />
+  </head>
+  <body class="flex min-h-[100dvh] flex-col lg:h-[100dvh] lg:overflow-hidden">
+    <header
+      class="flex h-14 shrink-0 items-center justify-between border-b px-6"
+      style="border-color: var(--border); background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px);"
+    >
+      <a href="/" class="font-mono text-[15px] font-medium tracking-tight" style="color: var(--text);">
+        style<span style="color: var(--accent);">·</span>doctor
+      </a>
+      <nav class="flex items-center gap-5 text-sm" style="color: var(--text-dim);">
+        <a href="https://www.npmjs.com/package/style-doctor" class="hover:opacity-70">npm</a>
+        <a href="https://github.com/baronunread/style-doctor" class="hover:opacity-70">GitHub</a>
+      </nav>
+    </header>
+
+    <main class="mx-auto flex w-full max-w-[1400px] min-h-0 flex-1 flex-col px-6 py-6">
+      <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+        <h1 class="text-2xl font-semibold tracking-tight" style="color: var(--text);">
+          Find the AI in your writing.
+        </h1>
+        <p class="text-sm" style="color: var(--text-dim);">
+          Paste text, get every LLM tell highlighted live. Runs in your browser, nothing is sent anywhere.
+        </p>
+      </div>
+
+      <div class="mt-4 grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
+        <div
+          class="relative min-h-[320px] overflow-hidden rounded-lg border"
+          style="border-color: var(--border); background: var(--surface);"
+        >
+          <div id="highlight-layer" class="doctor-pane" aria-hidden="true"></div>
+          <textarea
+            id="input"
+            class="doctor-pane"
+            style="background: transparent; color: var(--text); caret-color: var(--accent);"
+            spellcheck="false"
+            autocomplete="off"
+            set:text={EXAMPLE}
+          ></textarea>
+        </div>
+
+        <aside class="flex min-h-[320px] flex-col overflow-hidden rounded-lg border" style="border-color: var(--border); background: var(--surface);">
+          <div class="border-b p-4" style="border-color: var(--border);">
+            <div class="flex items-baseline gap-2">
+              <span id="score-value" class="font-mono text-3xl font-semibold" data-tone="excellent">100</span>
+              <span class="text-sm" style="color: var(--text-dim);">/ 100</span>
+              <span id="score-label" class="text-sm font-medium" style="color: var(--text-dim);">Excellent</span>
+            </div>
+            <div id="word-count" class="mt-2 font-mono text-xs" style="color: var(--text-dim);"></div>
+            <div id="category-counts" class="mt-2 flex flex-wrap gap-1.5"></div>
+          </div>
+          <div id="diagnostics-list" class="min-h-0 flex-1 overflow-y-auto"></div>
+        </aside>
+      </div>
+    </main>
+
+    <footer
+      class="shrink-0 border-t px-6 py-3 text-xs"
+      style="border-color: var(--border); color: var(--text-dim);"
+    >
+      <div class="mx-auto flex max-w-[1400px] items-center justify-between">
+        <span>Andrea Bruno</span>
+        <a href="https://github.com/baronunread/style-doctor/blob/main/LICENSE" class="hover:opacity-70">MIT License</a>
+      </div>
+    </footer>
+
+    <script>
+      import "../scripts/doctor.ts";
+    </script>
+  </body>
 </html>
+
+<style is:global>
+  .doctor-pane {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 1rem;
+    border: 0;
+    width: 100%;
+    height: 100%;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow: auto;
+    resize: none;
+  }
+
+  #highlight-layer {
+    pointer-events: none;
+    color: var(--text);
+  }
+
+  #input {
+    outline: none;
+  }
+
+  .category-chip {
+    border-radius: 999px;
+    padding: 0.15rem 0.55rem;
+    font-size: 11px;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+  .category-chip b {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .finding {
+    border-bottom: 1px solid var(--border);
+  }
+  .finding summary {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    list-style: none;
+    padding: 0.55rem 1rem;
+  }
+  .finding summary::-webkit-details-marker {
+    display: none;
+  }
+  .finding summary::marker {
+    content: "";
+  }
+  .finding summary::before {
+    content: "\203A"; /* › */
+    display: inline-block;
+    width: 0.75rem;
+    color: var(--text-dim);
+    transition: transform 0.15s ease;
+    flex-shrink: 0;
+  }
+  .finding[open] summary::before {
+    transform: rotate(90deg);
+  }
+  .finding-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    flex-shrink: 0;
+  }
+  .finding.sev-error .finding-dot {
+    background: var(--error);
+  }
+  .finding.sev-warning .finding-dot {
+    background: var(--warning);
+  }
+  .finding-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    flex: 1;
+    min-width: 0;
+  }
+  .finding-rule {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .finding-body {
+    padding: 0 1rem 0.85rem 2.25rem;
+  }
+  .finding-message,
+  .finding-help {
+    font-size: 12.5px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+  .finding-help {
+    margin-top: 0.35rem;
+  }
+  .finding-lines {
+    margin-top: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .empty-state {
+    padding: 1.5rem 1rem;
+    font-size: 13px;
+    color: var(--text-dim);
+    text-align: center;
+  }
+
+  #score-value[data-tone="empty"] {
+    color: var(--text-dim);
+  }
+  #score-value[data-tone="excellent"] {
+    color: #16a34a;
+  }
+  #score-value[data-tone="healthy"] {
+    color: var(--accent);
+  }
+  #score-value[data-tone="needs-work"] {
+    color: var(--warning);
+  }
+  #score-value[data-tone="critical"] {
+    color: var(--error);
+  }
+</style>

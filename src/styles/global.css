@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+@import "@fontsource/geist-sans/400.css";
+@import "@fontsource/geist-sans/500.css";
+@import "@fontsource/geist-sans/600.css";
+@import "@fontsource/geist-sans/700.css";
+@import "@fontsource/geist-mono/400.css";
+@import "@fontsource/geist-mono/500.css";
+
+@theme {
+  --font-sans: "Geist Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SF Mono", monospace;
+}
+
+:root {
+  --bg: #fafafa;
+  --surface: #ffffff;
+  --border: #e4e4e7;
+  --text: #18181b;
+  --text-dim: #71717a;
+  --accent: #2563eb;
+  --accent-text: #ffffff;
+  --error: #dc2626;
+  --error-bg: rgb(220 38 38 / 0.12);
+  --warning: #b45309;
+  --warning-bg: rgb(217 119 6 / 0.16);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0a0a0b;
+    --surface: #131316;
+    --border: #27272a;
+    --text: #f4f4f5;
+    --text-dim: #a1a1aa;
+    --accent: #3b82f6;
+    --accent-text: #08101f;
+    --error: #f87171;
+    --error-bg: rgb(248 113 113 / 0.14);
+    --warning: #fbbf24;
+    --warning-bg: rgb(251 191 36 / 0.16);
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0a0a0b;
+  --surface: #131316;
+  --border: #27272a;
+  --text: #f4f4f5;
+  --text-dim: #a1a1aa;
+  --accent: #3b82f6;
+  --accent-text: #08101f;
+  --error: #f87171;
+  --error-bg: rgb(248 113 113 / 0.14);
+  --warning: #fbbf24;
+  --warning-bg: rgb(251 191 36 / 0.16);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+}
+
+mark.sev-error {
+  background: var(--error-bg);
+  color: inherit;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px var(--error-bg);
+}
+
+mark.sev-warning {
+  background: var(--warning-bg);
+  color: inherit;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px var(--warning-bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
