@@ -112,10 +112,15 @@ const score = scoreOf(diagnostics, words);
     line-height: 1.65;
     white-space: pre-wrap;
     word-break: break-word;
-    /* Padding lives here, not on .cm-content, so the pre-hydration fallback
-       text (rendered directly in this div, no CodeMirror yet) sits at the
-       exact same position CodeMirror renders it at once it mounts. Padding
-       in both places would double up once the editor takes over. */
+    /* Invisible until doctor.ts reveals it post-mount. Matching a plain
+       div's text layout against CodeMirror's own rendering engine pixel
+       for pixel (padding, scrollbar gutter, font metrics, ...) is a losing
+       game; simplest correct fix is to never show the mismatched state. */
+    opacity: 0;
+    transition: opacity 120ms ease;
+  }
+  #editor-mount.ready {
+    opacity: 1;
   }
   #editor-mount .cm-editor {
     height: 100%;
