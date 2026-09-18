@@ -1,9 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
     <rect width="32" height="32" rx="7" fill="#111113" />
-    <g stroke="#3b82f6" stroke-width="2.4" stroke-linecap="round">
-        <line x1="12" y1="6" x2="12" y2="26" />
-        <line x1="20" y1="6" x2="20" y2="26" />
-        <line x1="6" y1="12" x2="26" y2="12" />
-        <line x1="6" y1="20" x2="26" y2="20" />
-    </g>
+    <line x1="7" y1="13" x2="25" y2="13" stroke="#f4f4f5" stroke-width="2" stroke-linecap="round" />
+    <path d="M6 21 q2.2 -3.4 4.4 0 q2.2 3.4 4.4 0 q2.2 -3.4 4.4 0 q2.2 3.4 4.4 0 q2.2 -3.4 4.4 0"
+        fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" />
 </svg>
