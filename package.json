@@ -21,7 +21,7 @@
     "@fontsource/geist-sans": "^5.3.0",
     "@tailwindcss/vite": "^4.3.3",
     "astro": "^7.3.3",
-    "style-doctor": "^0.4.1",
+    "style-doctor": "^0.4.2",
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
