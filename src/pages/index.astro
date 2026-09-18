@@ -3,6 +3,8 @@ import "../styles/global.css";
 import geistSansUrl from "@fontsource/geist-sans/files/geist-sans-latin-400-normal.woff2?url";
 import geistSansBoldUrl from "@fontsource/geist-sans/files/geist-sans-latin-600-normal.woff2?url";
 import geistMonoUrl from "@fontsource/geist-mono/files/geist-mono-latin-400-normal.woff2?url";
+import { findInText, scoreLabel } from "style-doctor/rules.js";
+import { scoreOf, scoreTone, buildHighlightHtml, diagnosticsListHtml, categoryCountsHtml } from "../lib/render";
 
 const EXAMPLE = `In today's world, it's important to note that we must delve into the rich tapestry of modern software. This isn't just a tool, but a game-changer that will unlock the potential of your writing. It stands as a testament to seamless, robust, cutting-edge engineering.
 
@@ -12,6 +14,11 @@ const EXAMPLE = `In today's world, it's important to note that we must delve int
 - **Clarity:** a meticulous, intricate interplay of ideas
 
 I hope this helps! Let me know if you have questions.`;
+
+// Precomputed at build time so the score/highlights/diagnostics ship in the
+// initial HTML instead of popping in once client JS runs.
+const { diagnostics, words } = findInText(EXAMPLE, "input.md", {});
+const score = scoreOf(diagnostics, words);
 ---
 
 <html lang="en">
@@ -60,7 +67,7 @@ I hope this helps! Let me know if you have questions.`;
           class="relative min-h-[320px] overflow-hidden rounded-lg border"
           style="border-color: var(--border); background: var(--surface);"
         >
-          <div id="highlight-layer" class="doctor-pane" aria-hidden="true"></div>
+          <div id="highlight-layer" class="doctor-pane" aria-hidden="true" set:html={buildHighlightHtml(EXAMPLE, diagnostics)}></div>
           <textarea
             id="input"
             class="doctor-pane"
@@ -74,14 +81,16 @@ I hope this helps! Let me know if you have questions.`;
         <aside class="flex min-h-[320px] flex-col overflow-hidden rounded-lg border" style="border-color: var(--border); background: var(--surface);">
           <div class="border-b p-4" style="border-color: var(--border);">
             <div class="flex items-baseline gap-2">
-              <span id="score-value" class="font-mono text-3xl font-semibold" data-tone="empty">–</span>
+              <span id="score-value" class="font-mono text-3xl font-semibold" data-tone={scoreTone(score)}>{score}</span>
               <span class="text-sm" style="color: var(--text-dim);">/ 100</span>
-              <span id="score-label" class="text-sm font-medium" style="color: var(--text-dim);"></span>
+              <span id="score-label" class="text-sm font-medium" style="color: var(--text-dim);">{scoreLabel(score)}</span>
             </div>
-            <div id="word-count" class="mt-2 font-mono text-xs" style="color: var(--text-dim);"></div>
-            <div id="category-counts" class="mt-2 flex flex-wrap gap-1.5"></div>
+            <div id="word-count" class="mt-2 font-mono text-xs" style="color: var(--text-dim);">
+              {words} word{words === 1 ? "" : "s"} · {diagnostics.length} finding{diagnostics.length === 1 ? "" : "s"}
+            </div>
+            <div id="category-counts" class="mt-2 flex flex-wrap gap-1.5" set:html={categoryCountsHtml(diagnostics)} />
           </div>
-          <div id="diagnostics-list" class="min-h-0 flex-1 overflow-y-auto"></div>
+          <div id="diagnostics-list" class="min-h-0 flex-1 overflow-y-auto" set:html={diagnosticsListHtml(diagnostics)} />
         </aside>
       </div>
     </main>
