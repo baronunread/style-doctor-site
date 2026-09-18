@@ -1,5 +1,8 @@
 ---
 import "../styles/global.css";
+import geistSansUrl from "@fontsource/geist-sans/files/geist-sans-latin-400-normal.woff2?url";
+import geistSansBoldUrl from "@fontsource/geist-sans/files/geist-sans-latin-600-normal.woff2?url";
+import geistMonoUrl from "@fontsource/geist-mono/files/geist-mono-latin-400-normal.woff2?url";
 
 const EXAMPLE = `In today's world, it's important to note that we must delve into the rich tapestry of modern software. This isn't just a tool, but a game-changer that will unlock the potential of your writing. It stands as a testament to seamless, robust, cutting-edge engineering.
 
@@ -17,6 +20,9 @@ I hope this helps! Let me know if you have questions.`;
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preload" as="font" type="font/woff2" href={geistSansUrl} crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href={geistSansBoldUrl} crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href={geistMonoUrl} crossorigin />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="generator" content={Astro.generator} />
     <title>Style Doctor</title>
