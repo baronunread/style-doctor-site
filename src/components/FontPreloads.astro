@@ -1,0 +1,10 @@
+---
+import sansRegular from "@fontsource/geist-sans/files/geist-sans-latin-400-normal.woff2?url";
+import sansMedium from "@fontsource/geist-sans/files/geist-sans-latin-500-normal.woff2?url";
+import sansSemibold from "@fontsource/geist-sans/files/geist-sans-latin-600-normal.woff2?url";
+import monoRegular from "@fontsource/geist-mono/files/geist-mono-latin-400-normal.woff2?url";
+import monoMedium from "@fontsource/geist-mono/files/geist-mono-latin-500-normal.woff2?url";
+---
+{[sansRegular, sansMedium, sansSemibold, monoRegular, monoMedium].map((href) => (
+  <link rel="preload" as="font" type="font/woff2" href={href} crossorigin />
+))}

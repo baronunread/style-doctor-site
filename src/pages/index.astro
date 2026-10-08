@@ -1,18 +1,9 @@
 ---
 import "../styles/global.css";
-import geistSansUrl from "@fontsource/geist-sans/files/geist-sans-latin-400-normal.woff2?url";
-import geistSansBoldUrl from "@fontsource/geist-sans/files/geist-sans-latin-600-normal.woff2?url";
-import geistMonoUrl from "@fontsource/geist-mono/files/geist-mono-latin-400-normal.woff2?url";
+import SeoHead from "../components/SeoHead.astro";
+import SiteHeader from "../components/SiteHeader.astro";
 import { findInText, scoreLabel } from "style-doctor/rules.js";
 import { scoreOf, scoreTone, diagnosticsListHtml, categoryCountsHtml } from "../lib/render";
-import { readFileSync } from "node:fs";
-import { createRequire } from "node:module";
-
-const styleDoctorPkgPath = createRequire(import.meta.url)
-  .resolve("style-doctor")
-  .replace(/cli\.js$/, "package.json");
-const { version } = JSON.parse(readFileSync(styleDoctorPkgPath, "utf8"));
-
 const EXAMPLE = `In today's world, it's important to note that we must delve into the rich tapestry of modern software. This isn't just a tool, but a game-changer that will unlock the potential of your writing. It stands as a testament to seamless, robust, cutting-edge engineering.
 
 ## Why This Matters And Why It Is Important
@@ -30,70 +21,31 @@ const score = scoreOf(diagnostics, words);
 
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" sizes="any" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="preload" as="font" type="font/woff2" href={geistSansUrl} crossorigin />
-    <link rel="preload" as="font" type="font/woff2" href={geistSansBoldUrl} crossorigin />
-    <link rel="preload" as="font" type="font/woff2" href={geistMonoUrl} crossorigin />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="generator" content={Astro.generator} />
-    <title>Style Doctor</title>
-    <meta
-      name="description"
-      content="Paste your prose and see every AI-writing tell highlighted live, in your browser."
-    />
-
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://style-doctor.pages.dev/" />
-    <meta property="og:title" content="Style Doctor" />
-    <meta
-      property="og:description"
-      content="Paste your prose and see every AI-writing tell highlighted live, in your browser."
-    />
-    <meta property="og:image" content="https://style-doctor.pages.dev/og.png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Style Doctor" />
-    <meta
-      name="twitter:description"
-      content="Paste your prose and see every AI-writing tell highlighted live, in your browser."
-    />
-    <meta name="twitter:image" content="https://style-doctor.pages.dev/og.png" />
+    <SeoHead title="Style Doctor — Free AI Writing Checker & Prose Linter" description="Check common AI-writing patterns, filler, and formatting issues with a free, open-source prose linter. Get a score in your browser or run it in GitHub Actions." path="/" pageName="Playground" />
   </head>
   <body class="flex min-h-[100dvh] flex-col lg:h-[100dvh] lg:overflow-hidden">
-    <header
-      class="flex h-14 shrink-0 items-center justify-between border-b px-6"
-      style="border-color: var(--border); background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px);"
-    >
-      <a href="/" class="flex items-baseline gap-2 font-mono text-[15px] font-medium tracking-tight" style="color: var(--text);">
-        style<span style="color: var(--accent);">·</span>doctor
-        <span class="text-xs font-normal" style="color: var(--text-dim);">v{version}</span>
-      </a>
-      <nav class="flex items-center gap-5 text-sm" style="color: var(--text-dim);">
-        <a href="https://www.npmjs.com/package/style-doctor" class="hover:opacity-70">npm</a>
-        <a href="https://github.com/baronunread/style-doctor" class="hover:opacity-70">GitHub</a>
-      </nav>
-    </header>
+    <SiteHeader active="playground" />
 
-    <main class="mx-auto flex w-full max-w-[1400px] min-h-0 flex-1 flex-col px-6 py-6">
-      <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+    <main id="main" class="mx-auto flex w-full max-w-[1400px] min-h-0 flex-1 flex-col px-6 py-6">
+      <div class="flex flex-col items-start gap-1">
         <h1 class="text-2xl font-semibold tracking-tight" style="color: var(--text);">
-          Find the AI in your writing.
+          Check AI writing patterns in your prose.
         </h1>
         <p class="text-sm" style="color: var(--text-dim);">
-          Paste text, get every LLM tell highlighted live. Runs in your browser, nothing is sent anywhere.
+          Paste your prose for a live check that keeps your text in your browser.
         </p>
       </div>
 
+      <p class="mt-2 text-xs leading-relaxed" style="color: var(--text-dim);">
+        Style Doctor is a free, open-source English prose linter. Its 0–100 score measures findings density, not AI authorship.{" "}
+        <a href="/repos/#github-actions" class="underline underline-offset-2">Run it in GitHub Actions</a> to check Markdown and component copy.
+      </p>
       <div class="mt-4 grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
         <div
           class="flex min-h-[320px] flex-col overflow-hidden rounded-lg border"
           style="border-color: var(--border); background: var(--surface);"
         >
-          <div id="editor-mount" class="min-h-0 flex-1" set:text={EXAMPLE} />
+          <div data-nosnippet id="editor-mount" class="min-h-0 flex-1" set:text={EXAMPLE} />
         </div>
 
         <aside class="flex min-h-[320px] flex-col overflow-hidden rounded-lg border" style="border-color: var(--border); background: var(--surface);">
@@ -123,6 +75,10 @@ const score = scoreOf(diagnostics, words);
       </div>
     </footer>
 
+    <noscript>
+      <style>#editor-mount { opacity: 1 !important; }</style>
+      <p class="px-6 py-2 text-sm">Enable JavaScript to check your own text. The sample report above is available without JavaScript.</p>
+    </noscript>
     <script>
       import "../scripts/doctor.ts";
     </script>

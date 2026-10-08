@@ -1,0 +1,191 @@
+---
+import "../styles/global.css";
+import SeoHead from "../components/SeoHead.astro";
+import RepoFindings from "../components/RepoFindings.astro";
+import brandonHumanizer from "../../public/scans/brandonwise--humanizer.json";
+import humanizer from "../../public/scans/Iampattanayak--Claude-Humanizer.json";
+import SiteHeader from "../components/SiteHeader.astro";
+import hono from "../../public/scans/honojs--hono.json";
+import vite from "../../public/scans/vitejs--vite.json";
+import astro from "../../public/scans/withastro--astro.json";
+import react from "../../public/scans/facebook--react.json";
+const scans = [hono, vite, astro, react, humanizer, brandonHumanizer].sort((a, b) => a.score - b.score);
+const number = new Intl.NumberFormat("en-US");
+const date = new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone: "UTC" });
+const workflow = `name: Prose check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  style-doctor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Check prose
+        run: npx --yes style-doctor@0.4.2 --quiet
+`;
+---
+<html lang="en">
+  <head>
+    <SeoHead title="Open-Source Repository Prose Scores — Style Doctor" description="Explore local prose scans of six open-source repositories. Inspect scores and findings, download reports, and add Style Doctor to GitHub Actions." path="/repos/" pageName="Repository scans" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <SiteHeader active="repos" />
+    <main id="main">
+      <section class="intro" aria-labelledby="page-title">
+        <h1 id="page-title">Prose scores for open-source repositories.</h1>
+        <p class="lede">We ran Style Doctor on six open-source repositories. Explore the findings, then give your own prose a check on every pull request.</p>
+        <a class="button" href="#github-actions">Add it to your GitHub Actions <span aria-hidden="true">↗</span></a>
+        <p class="scan-note">Local snapshots · Style Doctor {hono.version} · {date.format(new Date(hono.scannedAt))} UTC</p>
+      </section>
+
+      <section aria-labelledby="results-title">
+        <div class="section-heading"><h2 id="results-title">Repository scans</h2><span>Lowest score first · Expand a row to inspect findings</span></div>
+        <div class="repo-columns" aria-hidden="true"><span>Repository</span><span>Score</span><span>Findings</span><span>Files</span><span>Words</span></div>
+        <div class="repo-list">
+          {scans.map((scan, index) => (
+            <details class="repo-row" open={index === 0}>
+              <summary class="repo-summary">
+                <span class="repo-name"><span class="row-arrow" aria-hidden="true">›</span>{scan.repository}</span>
+                <span><span class="score">{scan.score}</span><span class="denominator"> / 100</span><small>{scan.label}</small></span>
+                <span class="numeric"><span class="mobile-label">Findings </span>{number.format(scan.summary.issues)}<small>{number.format(scan.summary.errors)} errors · {number.format(scan.summary.warnings)} warnings</small></span>
+                <span class="numeric"><span class="mobile-label">Files </span>{number.format(scan.scannedFileCount)}</span>
+                <span class="numeric"><span class="mobile-label">Words </span>{number.format(scan.words)}</span>
+              </summary>
+              <div class="repo-body">
+                <div class="snapshot-links">
+                  <a href={`https://github.com/${scan.repository}`}>View repository ↗</a>
+                  <a class="commit" href={`https://github.com/${scan.repository}/tree/${scan.commit}`}>Commit {scan.commit.slice(0, 7)}</a>
+                  <span>{date.format(new Date(scan.scannedAt))} UTC · v{scan.version}</span>
+                  <a href={`/scans/${scan.repository.replace("/", "--")}.json`} download>Download full JSON ↓</a>
+                </div>
+                {["Iampattanayak/Claude-Humanizer", "brandonwise/humanizer"].includes(scan.repository) && <p class="repo-note">This writing-rules repository includes intentional examples and test fixtures of the patterns it teaches writers to avoid. Those examples contribute to its score; review the findings in context.</p>}
+                <div class="category-counts">
+                  {Object.entries(scan.summary.byCategory).map(([category, counts]) => <span>{category} <b>{number.format(counts.errors + counts.warnings)}</b></span>)}
+                </div>
+                <h3>Findings by rule</h3>
+                <p class="findings-intro">Expand a rule for matched text, rewrite guidance, and links to the original source. Showing up to five occurrences per rule.</p>
+                <RepoFindings diagnostics={scan.diagnostics} repository={scan.repository} commit={scan.commit} />
+              </div>
+            </details>
+          ))}
+        </div>
+        <p class="context">Scores measure weighted findings per 100 words. A high score can still include many findings in a large repo. These checks suggest edits; they do not establish who wrote the text.</p>
+      </section>
+
+      <section class="method" aria-labelledby="method-title">
+        <h2 id="method-title">What we scanned</h2>
+        <p>Each snapshot covers the supported, tracked files in a clean checkout at the linked commit: Markdown, MDX, text, Astro, JSX, TSX, HTML, Vue, and Svelte. The scan includes changelogs and test fixtures; documentation in separate repositories is outside the scan.</p>
+        <p>We used the same default rules for every repo, with repository configuration disabled. We exclude standard dependency, build, cache, and vendor directories. The engine skips fenced code, inline code, and blockquotes, and uses a heuristic extractor for component prose. Findings can need human review.</p>
+        <p>These results stay fixed until we run another local scan. Expand a repository and a rule to read findings here, or download the JSON for every source location.</p>
+      </section>
+
+      <section id="github-actions" class="actions" aria-labelledby="actions-title">
+        <div>
+          <p class="eyebrow">Check your own repo</p>
+          <h2 id="actions-title">Catch prose issues in your pull requests.</h2>
+          <p>Add this workflow to <code>.github/workflows/prose.yml</code>. It scans the repo on pushes to <code>main</code> and on pull requests, and fails when error-severity findings remain.</p>
+          <p>Start with <code>--blocking none</code> for an advisory check. Adjust the branch name if needed, and use <code>.style-doctor.json</code> to ignore rules or exclude paths.</p>
+          <a class="docs-link" href="https://github.com/baronunread/style-doctor#ci">Read the CI and configuration guide ↗</a>
+        </div>
+        <div class="workflow">
+          <div class="workflow-heading"><span>prose.yml</span><button id="copy-workflow" type="button">Copy workflow</button></div>
+          <pre tabindex="0" role="region" aria-label="GitHub Actions workflow"><code id="workflow-code">{workflow}</code></pre>
+          <p id="copy-status" role="status" aria-live="polite"></p>
+        </div>
+      </section>
+    </main>
+    <footer><a href="/">Try the playground</a><span>Andrea Bruno · <a href="https://github.com/baronunread/style-doctor/blob/main/LICENSE">MIT License</a></span></footer>
+    <script>
+      const button = document.querySelector<HTMLButtonElement>("#copy-workflow");
+      const code = document.querySelector<HTMLElement>("#workflow-code");
+      const status = document.querySelector<HTMLElement>("#copy-status");
+      button?.addEventListener("click", async () => {
+        if (!code || !status) return;
+        try {
+          await navigator.clipboard.writeText(code.textContent ?? "");
+          status.textContent = "Workflow copied. Save it as .github/workflows/prose.yml.";
+        } catch {
+          status.textContent = "Copy unavailable. Select and copy the workflow above.";
+        }
+      });
+    </script>
+  </body>
+</html>
+<style>
+  a, button { transition: color 150ms, background 150ms; }
+  a:hover { color: var(--accent); }
+  :is(a, button, summary, pre, .table-scroll):focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+  .skip-link { position: absolute; left: 1rem; top: -5rem; padding: .75rem; background: var(--surface); z-index: 2; }
+  .skip-link:focus { top: 1rem; }
+  main { max-width: 1400px; margin: auto; padding: 0 1.5rem; }
+  .intro { padding: 5rem 0 3.5rem; }
+  .eyebrow { font: .75rem var(--font-mono); color: var(--text-dim); margin-bottom: 1.25rem; }
+  h1 { font-size: clamp(2.5rem, 5vw, 4rem); line-height: 1.1; font-weight: 600; letter-spacing: -.055em; text-wrap: balance; }
+  .lede { max-width: 620px; margin: 1.5rem 0; font-size: 1.125rem; line-height: 1.7; color: var(--text-dim); }
+  .button { display: inline-flex; gap: 1.5rem; padding: .8rem 1rem; border-radius: 6px; background: var(--accent); color: var(--accent-text); font-size: .875rem; font-weight: 600; }
+  .button:hover { background: color-mix(in srgb, var(--accent) 85%, var(--text)); color: var(--accent-text); }
+  .scan-note { margin-top: 1.25rem; color: var(--text-dim); font: .75rem var(--font-mono); line-height: 1.7; }
+  .section-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; margin-bottom: 1rem; }
+  h2 { font-size: 1.25rem; font-weight: 600; letter-spacing: -.025em; }
+  .section-heading > span { color: var(--text-dim); font-size: .75rem; }
+  .repo-columns, .repo-summary { display: grid; grid-template-columns: minmax(230px, 2fr) 1fr 1.6fr .75fr 1fr; gap: 1.5rem; align-items: center; }
+  .repo-columns { padding: 1rem; border-top: 1px solid var(--border); color: var(--text-dim); font-size: .75rem; }
+  .repo-row { border-bottom: 1px solid var(--border); }
+  .repo-summary { list-style: none; cursor: pointer; padding: 1.25rem 1rem; }
+  .repo-summary::-webkit-details-marker { display: none; }
+  .repo-summary:hover { background: var(--surface); }
+  .repo-name { display: flex; gap: .6rem; align-items: center; font-size: .875rem; font-weight: 500; overflow-wrap: anywhere; }
+  .row-arrow { display: inline-block; transition: transform 150ms; font-size: 1.25rem; }
+  .repo-row[open] .row-arrow { transform: rotate(90deg); }
+  .score { font: 500 2rem var(--font-mono); letter-spacing: -.06em; }
+  .denominator { font: .75rem var(--font-mono); color: var(--text-dim); }
+  .repo-summary small { display: block; margin-top: .3rem; font: .7rem var(--font-sans); color: var(--text-dim); }
+  .numeric, .commit { font: .875rem var(--font-mono); font-variant-numeric: tabular-nums; }
+  .mobile-label { display: none; }
+  .repo-body { padding: 1rem 1.5rem 1.5rem; border-top: 1px solid var(--border); background: color-mix(in srgb, var(--surface) 50%, var(--bg)); }
+  .snapshot-links { display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; font-size: .75rem; color: var(--text-dim); }
+  .snapshot-links a { text-decoration: underline; text-underline-offset: .2rem; }
+  .repo-note { max-width: 75ch; margin: 1.25rem 0; padding-left: 1rem; border-left: 2px solid var(--warning); font-size: .875rem; line-height: 1.7; color: var(--text-dim); }
+  .category-counts { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; margin: 1.25rem 0; font-size: .75rem; color: var(--text-dim); }
+  .category-counts b { color: var(--text); font-family: var(--font-mono); }
+  h3 { font-size: .875rem; font-weight: 600; }
+  .findings-intro { margin: .5rem 0 1rem; font-size: .8rem; color: var(--text-dim); line-height: 1.7; }
+  .context { max-width: 760px; margin-top: 1.25rem; font-size: .875rem; line-height: 1.7; color: var(--text-dim); }
+  @media (max-width: 950px) {
+    .repo-columns { display: none; }
+    .repo-summary { grid-template-columns: 1fr 1fr; gap: 1rem; padding: 1.25rem 0; }
+    .repo-name { grid-column: 1 / -1; }
+    .mobile-label { display: inline; font: .7rem var(--font-sans); color: var(--text-dim); }
+    .repo-body { padding: 1rem .75rem; }
+  }
+  .method { padding: 3rem 0; max-width: 760px; }
+  .method p, .actions p:not(.eyebrow) { margin-top: 1rem; color: var(--text-dim); font-size: .875rem; line-height: 1.75; }
+  .actions { scroll-margin-top: 2rem; border-top: 1px solid var(--border); padding: 3rem 0 4rem; display: grid; grid-template-columns: 1fr 1.15fr; gap: 3rem; }
+  .actions h2 { font-size: 2rem; line-height: 1.25; text-wrap: balance; }
+  .docs-link { display: inline-block; margin-top: 1.5rem; font-size: .875rem; text-decoration: underline; text-underline-offset: .25rem; }
+  code { font-family: var(--font-mono); font-size: .8em; }
+  .workflow { min-width: 0; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); overflow: hidden; align-self: start; }
+  .workflow-heading { padding: .75rem 1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; font: .75rem var(--font-mono); color: var(--text-dim); }
+  button { cursor: pointer; padding: .35rem .6rem; border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-family: var(--font-sans); }
+  button:hover { background: var(--bg); }
+  pre { overflow-x: auto; padding: 1.25rem; line-height: 1.7; font-size: .875rem; }
+  #copy-status { padding: 0 1rem; min-height: 1.5rem; font-size: .75rem; margin: 0 0 .5rem; }
+  footer { display: flex; justify-content: space-between; gap: 1rem; border-top: 1px solid var(--border); padding: 1.5rem; font-size: .75rem; color: var(--text-dim); }
+  @media (max-width: 700px) {
+    .intro { padding-top: 3rem; }
+    .actions { grid-template-columns: 1fr; }
+    .actions { gap: 2rem; }
+    .section-heading { align-items: flex-start; flex-direction: column; gap: .3rem; }
+  }
+</style>

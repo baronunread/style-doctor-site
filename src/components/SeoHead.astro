@@ -1,0 +1,73 @@
+---
+import { productionBranch } from "../lib/seo";
+import FontPreloads from "./FontPreloads.astro";
+interface Props {
+  title: string;
+  description: string;
+  path: string;
+  pageName: string;
+}
+const { title, description, path, pageName } = Astro.props;
+if (!Astro.site) throw new Error("Set the canonical site URL in astro.config.mjs.");
+const canonical = new URL(path, Astro.site).href;
+const origin = Astro.site.origin;
+const image = new URL("/og.png", Astro.site).href;
+const isPreview = Boolean(process.env.CF_PAGES_BRANCH && process.env.CF_PAGES_BRANCH !== productionBranch);
+const graph = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite", "@id": `${origin}/#website`,
+      name: "Style Doctor", url: `${origin}/`, inLanguage: "en",
+      description: "Free, open-source prose linting for common AI-writing patterns, filler, and formatting issues.",
+    },
+    {
+      "@type": "SoftwareSourceCode", "@id": `${origin}/#software`,
+      name: "style-doctor", codeRepository: "https://github.com/baronunread/style-doctor",
+      programmingLanguage: "JavaScript", license: "https://opensource.org/license/mit",
+      author: { "@type": "Person", name: "Andrea Bruno", url: "https://github.com/baronunread" },
+    },
+    {
+      "@type": path === "/repos/" ? "CollectionPage" : "WebPage",
+      "@id": `${canonical}#webpage`, url: canonical, name: title, description,
+      inLanguage: "en", isPartOf: { "@id": `${origin}/#website` },
+      about: { "@id": `${origin}/#software` },
+      breadcrumb: path !== "/" ? { "@id": `${canonical}#breadcrumbs` } : undefined,
+    },
+    ...(path !== "/" ? [{
+      "@type": "BreadcrumbList", "@id": `${canonical}#breadcrumbs`,
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Style Doctor", item: `${origin}/` },
+        { "@type": "ListItem", position: 2, name: pageName, item: canonical },
+      ],
+    }] : []),
+  ],
+};
+---
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<FontPreloads />
+<title>{title}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+<meta name="robots" content={isPreview ? "noindex, nofollow" : "index, follow, max-image-preview:large"} />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="icon" href="/favicon.ico" sizes="any" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Style Doctor" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:url" content={canonical} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:image" content={image} />
+<meta property="og:image:type" content="image/png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Style Doctor prose checker with writing findings and a score" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={image} />
+<meta name="twitter:image:alt" content="Style Doctor prose checker with writing findings and a score" />
+<script type="application/ld+json" set:html={JSON.stringify(graph).replace(/</g, "\u003c")} />

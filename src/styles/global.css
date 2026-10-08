@@ -56,6 +56,10 @@
   --warning-bg: rgb(251 191 36 / 0.16);
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   background: var(--bg);
   color: var(--text);

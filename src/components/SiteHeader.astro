@@ -1,0 +1,30 @@
+---
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+const packagePath = createRequire(import.meta.url).resolve("style-doctor").replace(/cli\.js$/, "package.json");
+const { version } = JSON.parse(readFileSync(packagePath, "utf8"));
+interface Props { active: "playground" | "repos"; }
+const { active } = Astro.props;
+---
+<header>
+  <a class="brand" href="/"><span>style<span class="dot">·</span>doctor</span><span class="version">v{version}</span></a>
+  <nav aria-label="Main navigation">
+    <a href="/" aria-current={active === "playground" ? "page" : undefined}>Playground</a>
+    <a href="/repos/" aria-current={active === "repos" ? "page" : undefined}>Repo scans</a>
+    <a href="https://www.npmjs.com/package/style-doctor">npm</a>
+    <a href="https://github.com/baronunread/style-doctor">GitHub</a>
+  </nav>
+</header>
+<style>
+  header { display: flex; flex-shrink: 0; min-height: 56px; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .75rem 1.5rem; padding: .75rem 1.5rem; border-bottom: 1px solid var(--border); background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); }
+  .brand { display: inline-flex; align-items: baseline; gap: .5rem; font-family: var(--font-mono); font-size: 15px; font-weight: 500; letter-spacing: -.025em; color: var(--text); white-space: nowrap; }
+  .dot { color: var(--accent); }
+  .version { color: var(--text-dim); font-size: .75rem; font-weight: 400; letter-spacing: normal; }
+  nav { display: flex; flex-wrap: wrap; align-items: center; gap: 1.25rem; font-size: .875rem; color: var(--text-dim); }
+  nav a { transition: color 150ms; }
+  nav a:hover { color: var(--accent); }
+  nav [aria-current] { color: var(--text); text-decoration: underline; text-underline-offset: .25rem; }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+  @media (max-width: 700px) { nav { gap: 1rem; } }
+  @media (max-width: 560px) { header { flex-direction: column; align-items: flex-start; justify-content: center; min-height: 80.5px; } }
+</style>

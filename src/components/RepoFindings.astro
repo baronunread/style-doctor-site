@@ -1,0 +1,55 @@
+---
+import type { Diagnostic } from "style-doctor/rules.js";
+interface Props { diagnostics: Diagnostic[]; repository: string; commit: string; }
+const { diagnostics, repository, commit } = Astro.props;
+const groups = new Map<string, Diagnostic[]>();
+for (const finding of diagnostics) {
+  const group = groups.get(finding.rule) ?? [];
+  group.push(finding);
+  groups.set(finding.rule, group);
+}
+const ordered = [...groups.values()].sort((a, b) =>
+  (a[0].severity === b[0].severity ? 0 : a[0].severity === "error" ? -1 : 1) || b.length - a.length,
+);
+---
+<div class="rule-groups">
+  {ordered.map((group) => (
+    <details class="rule-group">
+      <summary><span class:list={["severity", group[0].severity]}>{group[0].severity}</span><span>{group[0].title}</span><span class="count">×{group.length}</span></summary>
+      <div class="rule-body">
+        <p>{group[0].message}</p>
+        <p class="help">{group[0].help}</p>
+        <ul>
+          {group.slice(0, 5).map((finding) => (
+            <li>
+              <code>{finding.match}</code>
+              <a href={`https://github.com/${repository}/blob/${commit}/${finding.filePath.split("/").map(encodeURIComponent).join("/")}#L${finding.line}`}>{finding.filePath}:{finding.line}:{finding.column} ↗</a>
+            </li>
+          ))}
+        </ul>
+        {group.length > 5 && <p class="sample-note">Showing 5 of {group.length} occurrences. The JSON report includes every source location.</p>}
+      </div>
+    </details>
+  ))}
+</div>
+<style>
+  .rule-groups { display: grid; gap: .5rem; }
+  .rule-group { border: 1px solid var(--border); border-radius: 6px; background: var(--surface); }
+  summary { display: flex; align-items: baseline; gap: .75rem; padding: .9rem 1rem; cursor: pointer; font-size: .875rem; list-style: none; }
+  summary::-webkit-details-marker { display: none; }
+  summary::before { content: "›"; flex-shrink: 0; }
+  details[open] > summary::before { content: "⌄"; }
+  .severity { font: .7rem var(--font-mono); }
+  .error { color: var(--error); }
+  .warning { color: var(--warning); }
+  .count { margin-left: auto; font-family: var(--font-mono); white-space: nowrap; }
+  .rule-body { padding: 0 1rem 1rem; font-size: .8rem; line-height: 1.7; color: var(--text-dim); }
+  .help { margin-top: .4rem; color: var(--text); }
+  ul { margin-top: .75rem; }
+  li { padding: .6rem 0; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: .25rem; }
+  code { font: .8rem var(--font-mono); color: var(--text); overflow-wrap: anywhere; white-space: pre-wrap; }
+  a { overflow-wrap: anywhere; text-decoration: underline; text-underline-offset: .2rem; }
+  .sample-note { font-size: .75rem; margin-top: .75rem; }
+  :is(summary, a):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  @media (max-width: 600px) { summary { flex-wrap: wrap; gap: .4rem; } summary > span:nth-of-type(2) { flex-basis: 70%; } }
+</style>
