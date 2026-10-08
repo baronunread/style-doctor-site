@@ -1,2 +1,2 @@
 export const indexablePaths = ["/", "/repos/"];
-export const productionBranch = "master";
+export const productionBranch = "main";

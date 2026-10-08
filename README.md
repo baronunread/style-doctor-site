@@ -61,6 +61,6 @@ The script scans supported tracked files using default rules and standard direct
 
 The canonical origin lives in `astro.config.mjs` (`site`). `SeoHead.astro` generates unique page metadata, canonicals, social cards, and JSON-LD. Add new indexable routes to `src/lib/seo.ts` for the generated sitemap. Do not invent ratings or add the prose scores as review ratings.
 
-Cloudflare Pages builds on a `CF_PAGES_BRANCH` other than the production branch (`master`, configured in `src/lib/seo.ts`) receive `noindex, nofollow`. Production pages remain indexable. Public JSON scan downloads receive `X-Robots-Tag: noindex` through `public/_headers`. The illustrative playground text uses `data-nosnippet` to keep it out of Google search snippets.
+Cloudflare Pages builds on a `CF_PAGES_BRANCH` other than the production branch (`main`, configured in `src/lib/seo.ts`) receive `noindex, nofollow`. Production pages remain indexable. Public JSON scan downloads receive `X-Robots-Tag: noindex` through `public/_headers`. The illustrative playground text uses `data-nosnippet` to keep it out of Google search snippets.
 
 After deployment, verify `/robots.txt`, `/sitemap.xml`, both canonical URLs, social-card assets, and the scan download response headers. Verify the site in Google Search Console, submit the sitemap, and inspect both URLs. Search Console verification requires the property owner's account; this repository contains no verification token. Changes to the domain require updating the canonical origin and any hosting redirects.
